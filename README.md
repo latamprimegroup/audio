@@ -10,14 +10,36 @@ componente (`AudioMixPanel`) é usado em dois lugares: no portal do cliente
 (aba "Studio de Áudio") e na tela admin `/dashboard/admin/googleads-portal`,
 para a equipe conferir um criativo sem precisar logar como o cliente.
 
-Este repo contém **só o módulo de áudio** — a camada de acesso do projeto
-de origem (sessão do portal + Prisma `GoogleAdsAccount`/`ClientProfile`) foi
-deixada de fora de propósito. Veja "Autenticação" abaixo.
+Este repo é um **app Next.js 14 standalone** do módulo de áudio — a camada de
+acesso do projeto de origem (sessão do portal + Prisma
+`GoogleAdsAccount`/`ClientProfile`) foi deixada de fora de propósito. Veja
+"Autenticação" abaixo.
+
+## Rodar localmente
+
+```bash
+# ffmpeg no sistema (Ubuntu/Debian)
+sudo apt-get install -y ffmpeg
+
+cp .env.example .env.local   # opcional
+npm install
+npm run dev                  # http://localhost:3010
+```
+
+Scripts: `npm run dev` · `npm run build` · `npm start` · `npm test`
 
 ## O que tem aqui
 
 ```
 src/
+  app/
+    layout.tsx / page.tsx / globals.css   # shell Next.js do Studio
+    api/cliente/googleads/audio-mix/
+      route.ts                  # GET  — config (falas, limites, disponibilidade de ffmpeg)
+      process/route.ts          # POST — faz o mix e devolve o vídeo processado
+      falas/route.ts            # GET  — lista o catálogo de falas
+      falas/[id]/route.ts       # GET  — serve um mp3 de fala
+      transcribe/route.ts       # GET/POST — transcreve o mix para conferência
   lib/googleads-portal/
     audio-mix.ts              # regra pura: filtro ffmpeg, catálogo de falas, clamp de volume
     audio-mix-run.ts          # roda o ffmpeg de verdade (execFile), probe de duração
@@ -28,12 +50,6 @@ src/
     audio-mix.test.ts         # testes (vitest) da régua pura
   components/googleads-portal/
     AudioMixPanel.tsx         # UI completa: upload, escolha de fala, volume, processar, testar
-  app/api/cliente/googleads/audio-mix/
-    route.ts                  # GET  — config (falas, limites, disponibilidade de ffmpeg)
-    process/route.ts          # POST — faz o mix e devolve o vídeo processado
-    falas/route.ts            # GET  — lista o catálogo de falas
-    falas/[id]/route.ts       # GET  — serve um mp3 de fala
-    transcribe/route.ts       # GET/POST — transcreve o mix para conferência
 public/googleads-portal/
   falas/{en,de}{1..5}.mp3      # 10 falas (5 variações × 2 idiomas)
   falas/index.json
@@ -44,7 +60,7 @@ scripts/generate-portal-falas.py  # gerador offline das falas via edge-tts (Pyth
 Não existe implementação duplicada — o painel do cliente e a tela admin só
 importam/remontam este mesmo `AudioMixPanel`.
 
-## Como integrar num projeto Next.js (App Router)
+## Como integrar num outro projeto Next.js (App Router)
 
 1. Copie as pastas `src/lib/googleads-portal`, `src/components/googleads-portal`
    e `src/app/api/cliente/googleads/audio-mix` para dentro do `src/` do seu
@@ -75,6 +91,7 @@ importam/remontam este mesmo `AudioMixPanel`.
 | `FFMPEG_PATH` | não | Caminho do binário ffmpeg. Padrão: `/usr/bin/ffmpeg`. |
 | `ASSEMBLYAI_API_KEY` | não | Liga o botão "Testar" (transcreve o canal mono pra conferir o que o fingerprint ouve). Sem ela, o botão fica desabilitado e a UI avisa. |
 | `AUDIO_STUDIO_TOKEN` | não | Ver "Autenticação" abaixo. |
+| `NEXT_PUBLIC_AUDIO_STUDIO_TOKEN` | não | Mesmo token no browser — o painel envia `Authorization: Bearer …` nas chamadas. |
 
 ## Autenticação — **leia antes de subir em produção**
 
@@ -86,7 +103,7 @@ browser-automation (`browser-core/profile-store`) só para resolver "de quem
 é essa conta", o que não faz sentido fora daquele projeto.
 
 O que veio no lugar (`src/lib/googleads-portal/audio-studio-access.ts`) é um
-gate mínimo：
+gate mínimo:
 
 - Sem `AUDIO_STUDIO_TOKEN` definido → libera geral (bom só para rodar local).
 - Com `AUDIO_STUDIO_TOKEN` definido → exige header
@@ -102,7 +119,7 @@ chamam só essa função — é o único lugar que precisa mudar.
 A régua de mix (`audio-mix.ts`) é pura e testada (`audio-mix.test.ts`):
 
 ```bash
-npm i -D vitest typescript @types/node
+npm i
 npx vitest run
 ```
 

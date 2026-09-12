@@ -26,6 +26,13 @@ type Transcript = {
 
 const LANG_LABEL: Record<FalaLang, string> = { en: 'Inglês', de: 'Alemão' }
 
+function studioAuthHeaders(): HeadersInit {
+  const token =
+    typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_AUDIO_STUDIO_TOKEN?.trim() : ''
+  if (!token) return {}
+  return { Authorization: `Bearer ${token}` }
+}
+
 export function AudioMixPanel() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -51,7 +58,7 @@ export function AudioMixPanel() {
   const [ffmpegReady, setFfmpegReady] = useState<boolean | null>(null)
 
   useEffect(() => {
-    fetch('/api/cliente/googleads/audio-mix')
+    fetch('/api/cliente/googleads/audio-mix', { headers: studioAuthHeaders() })
       .then((r) => (r.ok ? r.json() : {}))
       .then((raw: unknown) => {
         const d = (raw && typeof raw === 'object' ? raw : {}) as {
@@ -101,7 +108,11 @@ export function AudioMixPanel() {
       try {
         setJob('processing')
         setProgress(20)
-        const res = await fetch('/api/cliente/googleads/audio-mix/process', { method: 'POST', body })
+        const res = await fetch('/api/cliente/googleads/audio-mix/process', {
+          method: 'POST',
+          body,
+          headers: studioAuthHeaders(),
+        })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
           throw new Error(data.error || 'Falha ao processar.')
@@ -148,7 +159,11 @@ export function AudioMixPanel() {
       const body = new FormData()
       body.append('file', new File([blob], result.name, { type: 'video/mp4' }))
       setTest('transcribing')
-      const res = await fetch('/api/cliente/googleads/audio-mix/transcribe', { method: 'POST', body })
+      const res = await fetch('/api/cliente/googleads/audio-mix/transcribe', {
+        method: 'POST',
+        body,
+        headers: studioAuthHeaders(),
+      })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Falha na transcrição.')
       setTranscript({
