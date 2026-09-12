@@ -1,0 +1,52 @@
+[
+  {
+    "id": "en1",
+    "idioma": "en",
+    "rotulo": "Variação 1"
+  },
+  {
+    "id": "en2",
+    "idioma": "en",
+    "rotulo": "Variação 2"
+  },
+  {
+    "id": "en3",
+    "idioma": "en",
+    "rotulo": "Variação 3"
+  },
+  {
+    "id": "en4",
+    "idioma": "en",
+    "rotulo": "Variação 4"
+  },
+  {
+    "id": "en5",
+    "idioma": "en",
+    "rotulo": "Variação 5"
+  },
+  {
+    "id": "de1",
+    "idioma": "de",
+    "rotulo": "Variação 1"
+  },
+  {
+    "id": "de2",
+    "idioma": "de",
+    "rotulo": "Variação 2"
+  },
+  {
+    "id": "de3",
+    "idioma": "de",
+    "rotulo": "Variação 3"
+  },
+  {
+    "id": "de4",
+    "idioma": "de",
+    "rotulo": "Variação 4"
+  },
+  {
+    "id": "de5",
+    "idioma": "de",
+    "rotulo": "Variação 5"
+  }
+]
